@@ -5,6 +5,7 @@
 #include <CXO2/Core/NoteContainer.hpp>
 #include <CXO2/Core/NoteFactory.hpp>
 #include <CXO2/Config/GameConfig.hpp>
+#include <CXO2/Utilities/KeyState.hpp>
 #include <CXO2/UI/Components/Playing/Equalizer.hpp>
 #include <CXO2/Constants/Identifiers/Game.hpp>
 
@@ -129,7 +130,7 @@ namespace Cx
             // Still send key press event with empty front buffers for fun
             const auto keyMode = static_cast<KeyMode>(m_instantiables.size());
             for (auto [channel, key] :  m_settings->Config.KeyBindings.at(keyMode))
-                Input(channel, isKeyPressed(key));
+                Input(channel, KeyState::IsPressed(key));
 
             return;
         }
@@ -155,7 +156,7 @@ namespace Cx
             m_inputTime = m_currentTime;
             const auto keyMode = static_cast<KeyMode>(m_instantiables.size());
             for (auto [channel, key] : m_settings->Config.KeyBindings.at(keyMode))
-                Input(channel, isKeyPressed(key));
+                Input(channel, KeyState::IsPressed(key));
         }
         else
         {

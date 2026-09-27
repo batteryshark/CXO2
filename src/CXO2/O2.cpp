@@ -116,6 +116,7 @@
 
 #include <CXO2/Config/GameConfig.hpp>
 #include <CXO2/Utilities/Console.hpp>
+#include <CXO2/Utilities/KeyState.hpp>
 #include <CXO2/Resources.hpp>
 
 #include <algorithm>
@@ -624,6 +625,7 @@ namespace Cx
     void O2::OnWindowCreated(sf::RenderWindow& window)
     {
         Gx::Application::OnWindowCreated(window);
+        KeyState::Pressed.reset();
 
         const auto& context = GetModule<Gx::Context>();
         const auto& config  = context.Require<GameConfig>();
@@ -640,6 +642,8 @@ namespace Cx
     void O2::OnFocusChanged(const bool focus)
     {
         Gx::Application::OnFocusChanged(focus);
+        if (!focus)
+            KeyState::Pressed.reset();
 
         const auto& context = GetModule<Gx::Context>();
         const auto& config  = context.Require<GameConfig>();
@@ -677,6 +681,7 @@ namespace Cx
     void O2::OnInputReceived(sf::Event& ev)
     {
         Gx::Application::OnInputReceived(ev);
+        KeyState::Update(ev);
 
         if (const auto key = ev.getIf<sf::Event::KeyReleased>(); key && key->code == sf::Keyboard::Key::F12)
             Console::Instance().SetEnabled(!Console::Instance().IsEnabled());
@@ -719,17 +724,17 @@ namespace Cx
         if (Gx::Debugger::IsDebuggerAttached())
             GetMainWindow().setTitle(fmt::format("{} [FPS: {}]", GetTitle(), GetRenderFrequency()));
 
-        if ((isKeyPressed(sf::Keyboard::Key::LAlt) || isKeyPressed(sf::Keyboard::Key::RAlt)) && isKeyPressed(sf::Keyboard::Key::Enter) && !m_windowStateSwitched)
+        if ((KeyState::IsPressed(sf::Keyboard::Key::LAlt) || KeyState::IsPressed(sf::Keyboard::Key::RAlt)) && KeyState::IsPressed(sf::Keyboard::Key::Enter) && !m_windowStateSwitched)
         {
             m_windowStateSwitched = true;
             SetWindowState(GetWindowState() == sf::State::Fullscreen ? sf::State::Windowed : sf::State::Fullscreen);
             if (GetWindowState() == sf::State::Fullscreen)
                 Gx::Application::SetView(GetLetterBoxView(Gx::Application::GetView(), GetMainWindow().getSize()));
         }
-        else if (m_windowStateSwitched && !isKeyPressed(sf::Keyboard::Key::Enter))
+        else if (m_windowStateSwitched && !KeyState::IsPressed(sf::Keyboard::Key::Enter))
             m_windowStateSwitched = false;
 
-        if ((isKeyPressed(sf::Keyboard::Key::LAlt) || isKeyPressed(sf::Keyboard::Key::RAlt)) && isKeyPressed(sf::Keyboard::Key::Up) && !m_letterboxSwitched)
+        if ((KeyState::IsPressed(sf::Keyboard::Key::LAlt) || KeyState::IsPressed(sf::Keyboard::Key::RAlt)) && KeyState::IsPressed(sf::Keyboard::Key::Up) && !m_letterboxSwitched)
         {
             m_letterboxSwitched = true;
             if (GetWindowState() == sf::State::Fullscreen)
@@ -740,7 +745,7 @@ namespace Cx
                     Gx::Application::SetView(GetDefaultView());
             }
         }
-        else if (m_letterboxSwitched && !isKeyPressed(sf::Keyboard::Key::Up))
+        else if (m_letterboxSwitched && !KeyState::IsPressed(sf::Keyboard::Key::Up))
             m_letterboxSwitched = false;
     }
 
