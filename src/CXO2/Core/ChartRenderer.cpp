@@ -433,15 +433,16 @@ namespace Cx
             return;
 
         if (m_sounds.find(ev->ID) == m_sounds.end())
-        {
             m_sounds[ev->ID] = &m_resources.Create<sf::Sound>(std::to_string(ev->ID), *ev->Sample);
-            m_sounds[ev->ID]->setVolume(ev->Volume);
-        }
 
+        auto& sound = *m_sounds[ev->ID];
         if (m_equalizer && ev->SampleType == Chart::SampleType::KeySound && ev->Sample->getDuration() < sf::seconds(60.0))
-            m_equalizer->Register(*ev, *m_sounds[ev->ID]);
+            m_equalizer->Register(*ev, sound);
 
-        m_mixer.Play(*m_sounds[ev->ID], group);
+        // The mixer resets the volume to the group volume, so apply the note volume and pan afterwards
+        m_mixer.Play(sound, group);
+        sound.setVolume(sound.getVolume() * ev->Volume / 100.f);
+        sound.setPan(ev->Pan);
     }
 
     bool ChartRenderer::EventState::IsRenderable(const double position) const
