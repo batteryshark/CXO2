@@ -46,6 +46,8 @@
 
 #include <algorithm>
 
+#include <cstdlib>
+
 namespace Cx
 {
     using namespace Constants::Identifiers;
@@ -117,7 +119,7 @@ namespace Cx
         AddChild(m_renderer);
 
         m_renderer.Initialize(*m_context.GetChart(), ChartRenderer::RenderSettings{
-            false,
+            std::getenv("CXO2_AUTOPLAY") != nullptr,
             m_config,
             GetViewport(),
             m_context.GetSpeed(),
