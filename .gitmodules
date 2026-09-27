@@ -1,4 +1,4 @@
 [submodule "modules/Genode"]
 	path = modules/Genode
-	url = https://github.com/SirusDoma/Genode.git
-	branch = main
+	url = https://github.com/batteryshark/Genode.git
+	branch = fix/mingw
