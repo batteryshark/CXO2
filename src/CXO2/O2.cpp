@@ -119,6 +119,7 @@
 #include <CXO2/Resources.hpp>
 
 #include <algorithm>
+#include <cstdlib>
 #include <filesystem>
 
 #if defined(__APPLE__)
@@ -696,7 +697,19 @@ namespace Cx
 
     sf::VideoMode O2::GetVideoMode() const
     {
-        return Gx::Application::GetVideoMode();
+        auto mode = Gx::Application::GetVideoMode();
+        if (GetWindowState() == sf::State::Fullscreen)
+            return mode;
+
+        // Scale the window by the largest whole factor that fits the screen (leaving room for
+        // the menu bar, title bar and Dock), or by CXO2_WINDOW_SCALE when it is set
+        const auto desktop = GetDesktopVideoMode().size;
+        auto scale = std::min(desktop.x / mode.size.x, desktop.y > 120 ? (desktop.y - 120) / mode.size.y : 1u);
+        if (const char* value = std::getenv("CXO2_WINDOW_SCALE"))
+            scale = static_cast<unsigned int>(std::max(1, std::atoi(value)));
+
+        mode.size *= std::max(1u, scale);
+        return mode;
     }
 
     void O2::Update(const sf::Time& delta)
