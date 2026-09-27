@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <exception>
+#include <filesystem>
 #include <typeinfo>
 #include <stdexcept>
 
@@ -41,6 +42,10 @@ int main(int argc , char** argv)
             {
                 if (argc >= 1 && Gx::LocalFileSystem::Instance().Contains(argv[0]))
                     Gx::LocalFileSystem::SetWorkingDirectory(std::string(argv[0]));
+
+                // Allow game data beside OTwo.app instead of inside Contents/MacOS
+                if (!std::filesystem::exists("Image") && std::filesystem::exists("../../../Image"))
+                    std::filesystem::current_path("../../..");
             }
         }
 
