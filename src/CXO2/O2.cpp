@@ -121,6 +121,28 @@
 #include <algorithm>
 #include <filesystem>
 
+#if defined(__APPLE__)
+#include <objc/message.h>
+#include <objc/runtime.h>
+#endif
+
+namespace
+{
+    // Auto-hide the menu bar and Dock while the borderless full screen window is shown
+    void SetMacOSFullScreenPresentation(const bool fullScreen)
+    {
+#if defined(__APPLE__)
+        constexpr unsigned long AutoHideDock    = 1 << 0; // NSApplicationPresentationAutoHideDock
+        constexpr unsigned long AutoHideMenuBar = 1 << 2; // NSApplicationPresentationAutoHideMenuBar
+
+        const auto app = reinterpret_cast<id(*)(id, SEL)>(objc_msgSend)(reinterpret_cast<id>(objc_getClass("NSApplication")), sel_registerName("sharedApplication"));
+        reinterpret_cast<void(*)(id, SEL, unsigned long)>(objc_msgSend)(app, sel_registerName("setPresentationOptions:"), fullScreen ? AutoHideDock | AutoHideMenuBar : 0);
+#else
+        (void)fullScreen;
+#endif
+    }
+}
+
 namespace Cx
 {
     O2::O2(std::string title, const sf::VideoMode& mode, const sf::View& view, const bool fullScreen, const sf::ContextSettings& settings) :
@@ -610,6 +632,8 @@ namespace Cx
 
         window.setVerticalSyncEnabled(config.UseVsync);
         window.setFramerateLimit(0);
+
+        SetMacOSFullScreenPresentation(GetWindowState() == sf::State::Fullscreen);
     }
 
     void O2::OnFocusChanged(const bool focus)
@@ -672,14 +696,7 @@ namespace Cx
 
     sf::VideoMode O2::GetVideoMode() const
     {
-        auto mode = Gx::Application::GetVideoMode();
-        if (GetWindowState() == sf::State::Fullscreen && Gx::GetCurrentPlatform() == Gx::Platform::macOS)
-        {
-            mode = GetDesktopVideoMode();
-            mode.size.y -= 120;
-        }
-
-        return mode;
+        return Gx::Application::GetVideoMode();
     }
 
     void O2::Update(const sf::Time& delta)
